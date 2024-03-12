@@ -1,0 +1,33 @@
+\section{Conceptos generales de bases de datos}
+\subsection{Conceptos Basicos}
+\begin{itemize}
+\item Se considera \textbf{Base de Datos}, a una coleccion o conjunto de datos interrelacionados con un proposito especifico vinculado a la resolucion de un problema del mundo real.
+\item Cualquier informacion dispuesta de manera adecuada para su tratamiento por una computadora.
+\item Una coleccion de archivos diseñados para servir a multiples aplicaciones.
+\end{itemize}
+
+\subsection{Origenes de las BD}
+
+En los origenes de las \textbf{BD}, las unidades de almacenamiento de gran volumen eran muy lentas, entonces se buscaba reducir el acceso a los mismos. Para esto, era necesario repetir datos en distintos puestos de trabajo y al final del dia actualizar los mismos en todas las unidades para evitar problemas de perdida/modificacion de informacion. \\
+Con el tiempo, la tecnologia fue avanzando y los sistemas de informacion evolucionaron. Se logra integrar aplicaciones, interrelacionar archivos y eliminar la redundancia de datos.
+
+\subsection{Gestores de Bases de Datos}
+Un \textbf{Sistema de Gestion de Bases de Datos (SGBD)} consiste en un conjunto de programas necesarios para acceder ya administrar una BD. \\
+Actualmente, cualquier sistema de software necesita interactuar con informacion almacenada en una BD y para ello requiere del soporte de un SGBD. \\
+Un SGBD posee dos tipos diferentes de lenguajes: uno para especificar el esquema de una BD, y el otro para la manipulacion de los datos.\\
+La definicion del esquema de una BD implica:
+\begin{itemize}
+  \item Diseño de la estructura que tendra efectivamente la BD.
+  \item Describir los datos, la semantica asociada y las restricciones de consistencia.
+\end{itemize}
+
+Para ello se utiliza un lenguaje especial, llamado \textbf{Lenguaje de Definicion de datos (LDD)}.El resultado de compilar lo escrito con el LDD es un archivo llamado Diccionario de Datos.Un Diccionario de Datos es un archivo con metadatos, es decir, datos acerca de los datos.
+
+Los objetivos mas relevantes de un SGBD son:
+\begin{itemize}
+  \item \textbf{controlar la concurrencia: }varios usuarios pueden acceder a la misma informacion en un mismo periodo de tiempo. Si el acceso es para consulta, no hay inconvenientes, pero si mas de un usuario quiere actualizar el mismo dato a la vez, se puede llegar a un estado de inconsistencia que, con la supervicion del SGBD, se puede evitar.
+  \item \textbf{Tener control centralizado: }tanto de los datos como de los programa que acceden a los datos.
+  \item \textbf{Facilitar el acceso a los datos: }dado que provee un lenguaje de consulta para recuperacion rapida de informacion.
+  \item \textbf{Proveer seguridad para imponer restricciones de acceso: }se debe difinir explicitamente quienes son los usuarios autorizados a acceder a la BD.
+  \item \textbf{Mantener la integridad de los datos: }esto implica que los datos incluidos en la BD respeten las condiciones establecidas al definir la estructura de la BD y que, ante una falla del sistema, se posea la capacidad de restauracion a la situacion previa.
+\end{itemize}

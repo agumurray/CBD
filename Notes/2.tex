@@ -1,0 +1,128 @@
+\section{Archivos, estructuras y operaciones basicas}
+\subsection{Definicion}
+Un \textbf{archivo} es una coleccion de registros semejantes, guardados en dispositivos de almacenamiento secundario de una computadora. \\
+Los archivos se caracterizan por el crecimiento y las modificaciones que se efectuan sobre estos. El crecimiento indica la incorporacion de nuevos elementos, y las modificaciones involucran alterar datos contenidos en el archivo, o quitarlos.
+
+\subsection{Aspectos fisicos}
+ \textbf{Almacenamiento primario (RAM): }
+\begin{itemize}
+    \item Capacidad de almacenamiento limitada.
+    \item Volatil.
+    \item Alto costo.
+    \item Acceso rapido (orden de los nanosegundos)
+\end{itemize}
+
+\paragraph{Almacenamiento secundario (cintas y discos):}
+\begin{itemize}
+    \item Alta capacidad de almacenamiento.
+    \item No volatil.
+    \item Menor costo que el primario.
+    \item Acceso lento a comparacion del primario (orden de los milisegundos). Se busca optimizar este aspecto:
+    \begin{enumerate}
+        \item Busqueda de un unico dato: Obtencion en un intento o en pocos.
+        \item Busqueda de varios datos: obtencion de todos de una sola vez.
+    \end{enumerate}
+    \item \textbf{Cintas: }acceso secuencial, economico, estable en diferentes condiciones ambientales, facil de transportar.
+    \item \textbf{Discos: }acceso directo, se almacenan datos en sectores.
+\end{itemize}
+
+
+\subsection{Niveles de vision}
+\begin{itemize}
+  \item \textbf{Archivo fisico: }es el archivo residente en la memoria secundaria y es administrado (ubicacion, tipo de operaciones disponibles) por el sistema operativo.
+  \item \textbf{Archivo logico: }es el archivo utilizado desde el algoritmo. Cuando el algoritmo necesita operar con un archivo, genera una conexion con el sistema operativo, el cual sera el responsable de la administracion. Esta accion se denomina independencia fisica.
+\end{itemize}
+
+
+\subsection{Organizacion interna de los datos}
+
+\begin{itemize}
+    \item \textbf{Secuencia de bytes: }Se determina como unidad mas pequeña de L/E al byte. No se puede determinar facilmente el comienzo y el final de cada dato por lo que generalmente son archivos de texto.
+    \item \textbf{Campos: }Se determina como unidad mas pequeña de L/E al campo. El campo es un item de datos elemental y se caracteriza por su tipo de dato y su tamaño.
+    \item \textbf{Registros: }Se determina como unidad mas pequeña de L/E al registro. El registro es un conjunto de campos agrupados que definen un elemento del archivo. Los campos internos a un registro deben estar logicamente relacionados, como para ser tratados como una unidad.
+\end{itemize}
+
+\subsection{Acceso a informacion contenida en los archivos}
+Basicamente, se pueden definir tres formas de acceder a los datos de un archivo:
+\begin{itemize}
+    \item \textbf{Secuencial: }el acceso a cada elemento de datos se realiza luego de haber accedido a su inmediato anterior. El recorrido es, entonces, desde el primero hasta el ultimo de los elementos, siguiendo el orden fisico de estos.
+    \item \textbf{Secuencial indizado: }el acceso a los elementos de un archivo se realiza teniendo presente algun tipo de organizacion previa, sin tener en cuenta el orden fisico.
+    \item \textbf{Directo: }es posible recuperar un elemento de dato de un archivo con un solo acceso, conociendo sus caracteristicas,k mas alla de que exista un orden fisico o logico predeterminado.
+\end{itemize}
+
+\subsection{Operaciones basicas sobre archivos}
+Para poder operar con archivos, son necesarias una serie de operaciones elementales disponibles entodos los lenguajes de programacion que utilicesn archivos de datos. Estas operaciones incluyen:
+\begin{itemize}
+    \item La definicion del archivo logico.
+    \item La definicion de la forma de trbajo del arcchivo (creacino inicial, utilizacion).
+    \item La administracion de datos (L/E info).
+\end{itemize}
+
+\subsubsection{Definicion de archivos}
+Como cualquier otro tipo de datos, los archivos necesitan ser definidos. Se reserva la palabra clave \textbf{file} para indicar la definicion del archivo.
+
+\begin{lstlisting}
+    Var archivo_logico: file of tipo_de_dato;
+\end{lstlisting}
+
+Otra opcion para definir archivos se presenta a continuacion:
+\begin{lstlisting}
+    Type archivo= file of tipo_de_dato;
+    Var archivo_logico: archivo;
+\end{lstlisting}
+
+\subsubsection{Correspondencia archivo logico - archivo fisico}
+Se debe indicar que el archivo logico utilizado por el algoritmo se corresponde con el archivo fisico adminstrado por el sistema operativo. La sentencia encargada de hacer esta correspondencia es:
+\begin{lstlisting}
+    Assign (nombre_logico, nombre_fisico);
+\end{lstlisting}
+
+\subsubsection{Apertura y creacion de archivos}
+Hasta el momento, se ha detallado como definir un archivo y se ha esctablecido la relacion con el nombre fisico. Para operar con un archivos desde un algoritmo, se debe realizar la apertura.
+\begin{itemize}
+    \item La operacin \textbf{rewrite} indica que el archivo va a ser creado y, por lo tanto, la unica operacion valida sobre el mismo es escribir informacion.
+    \item La operacino \textbf{reset} indica que el archivo ya existe y, por lo tanto, las operaciones validas sobre el mismo son L/E de informacion.
+\end{itemize}
+\begin{lstlisting}
+    rewrite(nombre_logico);
+    reset(nombre_logico);
+\end{lstlisting}
+
+\subsubsection{Cierre de archivos}
+Para mantener valida la marca de end of file (EOF) se cierra el archivo de la siguiente forma:
+\begin{lstlisting}
+    close(nombre_logico);
+\end{lstlisting}
+
+\subsubsection{Lectura y escritura de archivos}
+Para leer o escribir informacion en un archivo, las instrucciones son:
+\begin{lstlisting}
+   read(nombre_logico, var_dato);
+   write(nombre_logico, var_dato);
+\end{lstlisting}
+
+\paragraph{Buffers de memoria:} Las lecturas y escrituras desde o hacia un archivo se realizan sobre buffers. Se denomina buffer a una memoria intermedia (ubicada en RAM) entre un archivo y un programa, donde los datos residen provisoriamente hasta ser almacenados definitivamente en la memoria secundaria, o dodnde los datos residen una vez recuperados de dicha memoria secundaria. La razon de esto es la mejora de performance al trabajar con mayor frecuencia en memoria principal. \\
+La operacion read lee desde un buffer y, en caso de no contar con informacion, el sistema operativo realiza automaticamente una operacion input, trayendo mas informacion al buffer. La diferencia radica en que cada operacion input transfiere desde el disco una serie de registros. De esta forma, cada determinada cantidad de instrucciones read, se realiza una operacion input.\\
+De forma similar procede la operacion write; en este caso, se escribe en el buffer, y si no se cuenta con espacio suficiente, se descarga el buffer a disco por medio de una operacion output, dejandolo nuevamente vacio.
+
+\subsubsection{Operaciones adicionales con archivos}
+
+\begin{itemize}
+    \item Control fin de datos:
+        \begin{lstlisting}
+            eof(nombre_logico);
+        \end{lstlisting}
+    La funcion retornara verdadero si el puntero del archivo referencia e EOF, y falso en caso contrario.
+    \item Control de tamaño del archivo:
+        \begin{lstlisting}
+            filesize(nombre_logico);
+        \end{lstlisting}
+    \item Control de posicion de trabajo dentro del archivo:
+        \begin{lstlisting}
+            Filepos(nombre_logico);
+        \end{lstlisting}
+    \item Ubicacion fisica en alguna posicion del archivo:
+        \begin{lstlisting}
+            seek(nombre_logico, posicion);
+        \end{lstlisting}
+\end{itemize}
