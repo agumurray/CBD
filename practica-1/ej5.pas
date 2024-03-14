@@ -100,9 +100,9 @@ type
 		while not eof(myfile) do
 		begin
 			read(myfile, datos);
-			writeln(tfile, datos.num, datos.altura, datos.color);
+			writeln(tfile, datos.num, datos.altura, datos.cname);
 			writeln(tfile, datos.vname);
-			writeln(tfile, datos.cname);
+			writeln(tfile, datos.color);
 		end;
 		close(myfile);
 		close(tfile);
@@ -145,3 +145,5 @@ begin
 		if (op = 5) then lstxt(myfile);
 	until op=6;
 end.
+
+{f) Si no fuera necesario reutilizar el archivo de texto, podriamos cargar la informacion en cualquier orden y no fijarnos donde quedan ubicados los strings. Al revisar esto, logramos que en un uso futuro del .txt los campos se lean en orden y no haya problemas con la lectura de strings, ya que estos deberian estar siempre en el final de las lineas y nunca mas de uno por linea.}
