@@ -1,0 +1,275 @@
+\section{Algoritmica clasica sobre archivos}
+
+\subsection{Objetivo}
+Desarrollar algoritmos considerados clasicos en la operatoria de archivos secuenciales. Estos algoritmos se resumen en tres tipos: de actualizacion, merge y corte de control.
+
+El primer caso, con todas sus variantes, permite introducir problemas donde se actualiza el contenido de un archivo resumen o "maestro", a partir de un conjunto de archivos con datos vinculados a este archivo maestro.
+
+En el segundo caso, se dispone de la informacion distribuida en varios archivos que se reune para generar un nuevo archivo, producto de la union de los anteriores.
+
+Por ultimo, el corte de control, muy presente en la operatoria de BD, determina situaciones done, a partir de informacion contenida en archivos, es necesario generar reportes que resuman el contenido, con un formato especial.
+
+Se denomina archivo maestro al archivo que resume informacion sobre un dominio de problema especifico. Ejemplo: el archivo de productos de una empresa que contiene el stock actual de cada producto. Por otra parte, se denomina archivo detalle al archivo que contiene novedades o movimientos realizados sobre la informacion almacenada en el maestro. Ejemplo: el archivo con todas las ventas de los productos de la empresa realizadas en un dia particular.
+
+\subsection{Actualizacion de un archivo maestro con un archivo detalle (I)}
+Presenta la variante mas simple del proceso de actualizacion. Las precondiciones del problema son las siguientes:
+\begin{itemize}
+    \item Existe un archivo maestro.
+    \item Existe un unico archivo detalle que modifica al maestro.
+    \item Cada registro del detalle modifica a un registro del maestro. Esto significa que solamente apareceran datos en el detalle que se correspondan con datos del maestro. Se descarta la posibilidad de generar altas en ese archivo.
+    \item No todos los registros del maestro son necesariamente modificados.
+    \item Cada elemento del maestro que se modifica es alterado por uno y solo un elemento del archivo detalle.
+    \item Ambos archivos estan ordenados por igual criterio. Esta precondicion, considerada esencial, se debe a que hasta el momento se trabaja ocn archivos de datos de acuerdo con su orden fisico.
+\end{itemize}
+
+\begin{lstlisting}
+begin
+  assign(mae1, 'maestro');
+  assign(det1, 'detalle');
+  reset(mae1);
+  reset(det1);
+  while not eof(det1) do begin
+    read(mae1, regm);
+    read(det1, regd);
+    while(regm.cod<>regd.cod) do read(mae1,regm);
+    regm.stock := regm.stockk - regd.cant_vendida;
+    seek(mae1, filepos(mae1)-1);
+    write(mae1, regm);
+  end;
+  close(det1);
+  close(mae1);
+end.
+\end{lstlisting}
+
+\subsection{Actualizacion de un archivo maestro con un archivo detalle (II)}
+
+Este es otro caso, levemente diferente del anterior; solo se modifica una precondicion del problema y hace, de esta forma, variar el algoritmo resolutorio.
+
+\begin{itemize}
+    \item Cada elemento del archivo maestro puede no ser modificado, o ser modificado por uno o mas elementos del detalle (hay registros repetidos).
+\end{itemize}
+
+\begin{lstlisting}
+program ejemplo_3_3;
+  const valoralto='9999';
+  type str4 = string[4]
+
+  procedure leer(var archivo: detalle;
+  var dato: venta_prod);
+  begin
+    if not eof(archivo) then read (archivo, dato)
+    else dato.cod:=valoralto;
+  end;
+
+  begin
+    assign(mae1, 'maestro');
+    assign(det1, 'detalle');
+    reset(mae1);
+
+\include{1.tex}
+    reset(det1);
+    read(mae1, regm);
+    read(det1, regd);
+
+    while(regd.cod<>valoralto) do
+    begin
+      aux:=regd.cod;
+      total:=0;
+
+      while(aux = regd.cod) do
+      begin
+        total := total + regd.cant_vendida;
+        leer(det1,regd);
+      end;
+      while (regm.cod<>aux) do read(mae1,regm);
+
+      regm.cant := regm.cant - total;
+
+      seek(mae1, filepos(mae1)-1);
+
+      write(mae1, regm);
+
+      if not eof(mae1) then read(mae1,regm);
+    end;
+    close(det1);
+    close(mae1);
+  end.
+\end{lstlisting}
+
+El procedimiento de lectura, denominado leer, es el responsable de realizar el read correspondiente sobre el archivo, en caso de que este tuviera mas datos. En caso de alcanzar el fin de archivo, se asigna a la variable dato.cod, por la cual el archivo esta ordenado, un valor imposible de alcanzar en condiciones normales de trabajo. Este valor indicara que el puntero del archivo ha llegado a la marca de fin.
+
+\subsection{Actualizacion de un archivo maestro con N archivos detalle}
+
+Bajo las mismas consignas del ejemplo anteriosr, se plantea un procesa de actualizacion donde, ahora, la cantidad de archivos detalle se lleva a N (siendo $N>1$) y el resto de las precondiciones son las mismas.
+
+El ejemplo 3.4 presenta la resolucion de un algoritmo de actualizacion a partir de tres archivos detalle. Para ello, se agrega un nuevo procedimiento, denominado minimo, que actua como filtro. El objetivo de este proceso a partir de la iunformacion recibida es retornar el elemento mas pequeño de acuerdo con el criterio de ordenamiento del problema. El objetivo del procedimiento minimo es determinar el menor de los tres elementos recibidos de cada archivo y leer otro registro del archivo desde donde provenia ese elemento.
+
+\begin{lstlisting}
+procedure leer(var archivo: detalle, var dato:venta_prod);
+begin
+  if not eof(archivo) then read(archivo, dato)
+  else dato.cod := valoralto;
+end;
+
+procedure minimo(var r1,r2,r2,min:venta_prod);
+begin
+  if(r1.cod<=rd2.cod) and (r1.cod<=r3.cod) then
+  begin
+    mon:=r1;
+    leer(det1,r1);
+  end
+  else if (r2.cod<=r3.cod) then
+  begin
+    min:=r2;
+    leer(det,r2);
+  end
+  esle
+  begin
+
+\include{1.tex}
+    min := r3;
+    leer(det3,r3);
+  end;
+end;
+
+begin
+  {asignacion y apertura de archivos correspondientes}
+
+  while(min.cod<>valoralto) do
+  begin
+    aux:=min.cod;
+    total_vendido:=0;
+    while(aux=min.cod) do
+    begin
+      total_vendido:=total_vendido+min.cantvendida;
+      minimo(regd1,regd2,regd3,min);
+    end;
+    while(regm.cod<>min.cod) do read(mae1,regm);
+
+    regm.cant:=regm.cant-total;
+    seek(mae1, filepos(mae1)-1);
+    write(mae1,regm);
+    if not eof(mae1) then read(mae1,regm);
+  end;
+  close(det1);
+  close(det2);
+  close(det3);
+  close(mae1);
+end.
+\end{lstlisting}
+
+\subsection{Proceso de generacion de un nuevo archivo a partir de otros existentes. Merge}
+
+\subsubsection{Primer ejemplo}
+
+El primer ejemplo plantea un problema muy simple. Las precondiciones son las siguiente:
+\begin{itemize}
+    \item Se tiene informacion en tres archivos detalle.
+    \item Esta informacion se encuentra ordenada por el mismo criterio en cada caso.
+    \item La informacion es disjunta; esto significa que un elemento puede aparecer una sola oportunidad en todo el problema.
+\end{itemize}
+
+\begin{lstlisting}
+begin
+  leer(det1, regd1);
+  leer(det2, regd2);
+  leer(det3, regd3);
+
+  minimo(regd1, regd2, regd3, min);
+  while(min.codigo<>valoralto) do
+  begin
+    write(mae1, min);
+    minimo(regd1, regd2, regd3, min);
+  end;
+  close(det1);
+  close(det2);
+  close(det3);
+  close(mae1);
+end.
+\end{lstlisting}
+
+\subsubsection{Segundo ejemplo}
+Como segundo ejemplo se presenta un problema similar, pero ahora los elementos se pueden repetir dentro de los archivos detalle, modificando de esta forma la tercera precondicion del ejemplo anterior. El resto de las precondiciones permanecen inalteradas.
+
+\begin{lstlisting}
+begin
+  leer(det1, regd1);
+  leer(det2, regd2);
+  leer(det3, regd3);
+
+  minimo(regd1, regd2, regd3, min);
+
+  while(min.codigo<>valoralto) do
+  begin
+    codprod:=min.codigo;
+    cantotal:=0;
+    while(codprod=min.codigo)
+    begin
+      cantotal:=cantotal+min.cant;
+      minimo(regd1,regd2,regd3,min);
+    end;
+    write(mae1,min);
+  end;
+  close(det1);
+  close(det2);
+  close(det3);
+  close(mae1);
+end.
+\end{lstlisting}
+
+\subsection{Corte de control}
+
+Se denomina corte de control al proceso mediante el cual la informacion de un archivo es presentada en forma organizada de acuerdo con la estructura que tiene el archivo. \\
+Suponga que se almacena en un archivo la informacion de ventas de una cadena de electrodomesticos. Dichas ventas han sido efectuadas por los vendedores de cada sucursal de cada ciudad de cada provincia del pais. Luego, es necesario informar al gerente de ventas de la empresa el total de ventas producidas.
+
+Deben tenerse en cuenta las siguientes precondiciones:
+\begin{itemize}
+    \item El archivo se encuentra ordenado por provincia, ciudad, sucursal y vendedor.
+    \item Se debe informar el total vendido en cada sucursal, ciudad y provincia, asi como el total final.
+    \item En diferentes provicinas pueden existir ciudades con el mismo nombre, o en diferentes ciudades pueden existir sucursales con igual denominacion.
+\end{itemize}
+
+\begin{lstlisting}
+begin
+  {asignaciones y aperturas correspondientes.}
+  leer(archivo, reg);
+  total:=0;
+  while(reg.Provincia<>valoralto) do
+  begin
+    writeln('Provincia: ', reg.Provincia);
+    prov:=reg.Provincia;
+    totprov:=0;
+
+    while(prov=reg.Provincia) do
+    begin
+      writeln('Ciudad: ', reg.Ciudad);
+      ciudad:=reg.Ciudad;
+      totciudad:=0;
+
+      while(prov=reg.Provincia) and (Ciudad=reg.Ciudad) do
+      begin
+        writeln('Sucursa: ',reg.sucursal);
+        sucursal:=regSucursal;
+        totsuc:=0;
+        while((prov=reg.Provincia) and
+        (Ciudad=reg.Ciudad) and Sucursal=reg.Sucursal) do
+        begin
+          write('Vendedor: ', reg.Vendedor);
+          writeln(reg.MontoVenta);
+          totsuc:=totsuc+reg.MontoVenta;
+          leer(archivo, reg);
+        end;
+        writeln('Total sucursal', totsuc);
+        totciudad:=totciudad+totsuc;
+      end;
+      writeln('Total ciudad', totciudad);
+      totprov:=totprov+totciudad;
+    end;
+    writeln('Total provincia', totprov);
+    total:=total+totprov;
+  end;
+  writeln('Total empresa', total);
+  close(archivo);
+end.
+\end{lstlisting}
+
