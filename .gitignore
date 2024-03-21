@@ -8,3 +8,4 @@
 *.idx
 *.fdb_latexmk
 *.ind
+*.o
