@@ -1,0 +1,142 @@
+\section{Eliminacion de datos. Archivos con registros de longitud variable}
+
+\subsection{Proceso de bajas}
+Se denomina \textbf{proceso de baja} a aquel proceso que permite quitar informacion de un archivo.\\
+El proceso de baja puese ser analizado desde dos perspectivas diferentes: aquella ligada con la algoritmica y performance necesarias para borrar la informacion, y aquella que tiene que ver con la necesidad real de quitar informacion de un archivo en el contexto informactico actual.\\
+En la actualidad, las organizaciones que disponen de BD consideran la informacion su bien mas preciado. De esta forma, el concepto de borrar informacion queda condicionado. En general, el conocimiento adquirido no se quita, sino que se preserva en archivos o repositorios historicos.\\
+El proceso de baja puede llevarse a cabo de dos modos diferentes:
+\begin{itemize}
+  \item \textbf{Baja fisica: }consiste en borrar efectivamente la informacion del archivo, recuperando el espacio fisico.
+  \item \textbf{Baja logica: }consiste en borrar la informacion del archivo, pero sin recuperar el espacio fisico respectivo.
+\end{itemize}
+
+\subsubsection{Baja fisica generando un nuevo archivo de datos}
+\begin{lstlisting}
+program ejemplo_4_1;
+...
+begin
+...
+while(reg.Nombre<>'Carlos Garcia')
+begin
+  write(archivonuevo, reg);
+  leer(archivo, reg);
+end;
+leer(archivo, reg);
+while(reg.Nombre<>valoralto)do
+begin
+  write(archivonuevo, reg);
+  leer(archivo,reg);
+end;
+...
+end.
+\end{lstlisting}
+Un analisis de performance basico determino que este metodo necesita leer tantos datos como tenga el archivo original y escribir todos los datos, salvo el que se elimina. Esto significa $n$ lecturas y $n-1$ escrituras; en ambos casos, las lecturas y escrituras se realizan en forma secuencial.
+
+\subsubsection{Baja fisica utilizando el mismo archivo de datos}
+\begin{lstlisting}
+program ejemplo_4_2;
+...
+begin
+...
+while(reg.Nombre<>'Carlos Garcia')
+begin
+  leer(archivo,reg);
+end;
+leer(archivo, reg);
+while(reg.nombre<>valoralto)do
+begin
+  seek(archivo, filepos(archivo)-2);
+  write(archivo, reg);
+  seek(archivo, filepos(archivo)+1);
+  leer(archivo, reg);
+end;
+end.
+\end{lstlisting}
+
+El analisis de performance, para este ejemplo, determina que la cantidad de lecturas a realizar es $n$, en tanto que la cantidad de escrituras dependera del lugar donde se encuentre el elemento a borrar; en el peor de los casos, deberan realizarse nuevamente $n-1$ escrituras. No se necesita tanta memoria secundaria como en el ejemplo anterior.
+
+\subsubsection{Baja logica}
+Se realiza una baja logica sobre un archivo cuando el elemento que se desea quitar es marcado como borrado, pero sigue ocupando el espacio dentro dle archivo. La ventaja del borrado logico tiene que ver con la performance, baste con localizar el registro a eliminar y colocar sobre el una marca que indique que se encuentra no disponible. Entonces, la performance necesaria para llevar a cabo esta operacion es de tantas lecturas como sean requeridas hasta encontrar el elemento a borrar, mas una sola escritura que deja la marca de borrado logico sobre el registro.\\
+La desventaja de este metodo esta relacionada con el espacio en disco. Al no recuperarse el espacio borrado, el tamaño del archivo tiene a crecer continuamente.
+
+\begin{lstlisting}
+program ejemplo_4_3;
+...
+begin
+...
+while(reg.Nombre<>'Carlos Garcia') do
+begin
+  leer(archivo, reg);
+end;
+reg.nombre:='***' {marca de borrado}
+Seek(archivo, filepos(archivo)-1);
+write(archivo, reg);
+close(archivo);
+end.
+\end{lstlisting}
+
+\subsection{Recuperacion de espacio}
+El proceso de baja logica marca la informacion de un archivo como borrada. Ahora bien, esa informacion sigue ocupando espacio en el disco rigido. La pregunta a responde seria: que hacer  con dicha informacion? Hay dos respuestas posibles:
+\begin{itemize}
+  \item \textbf{Recuperacion de espacio: }periodicamente utilizar el proceso de baja fisica para realizar un proceso de compactacion del archivo. El mismo consiste en quitar todos aquellos registros marcados como borrados, utilizando para ello cualquiera de los algoritmos vistos anteriormente para borrado fisico.
+  \item \textbf{Reasignacion del espacio: }otra alternativa posible consiste en recuperar el espacio, utilizando los lugares indicados como borrados para el ingreso (altas) de nuevos elementos al archivo.
+\end{itemize}
+
+\subsubsection{Reasignacion de espacio}Esta tecnica consiste en reutilizar el espacio indicado como borrado para que nuevos registros se inserten en dichos lugares. Asi, el proceso de alta discutido en capitulos anteriores se veia veria modificado; en lugar de avanzar sobre la ultima posicion del archivo(donde se encuentra la marca de \textbf{EOF}), se debe localizar alguna posicion marcada como borrada para insertar el nuevo elemento en dicho lugar.\\
+Este proceso puede realizarse buscando los lugares libres desde el comienzo del archivo, pero se debe considerar que de esa manera seria muy lento. La alternativa consiste en recuperar el espacio de forma eficiente. Para ello, a medida que los datos se borran del archivo, se genera una lista encadenada invertida con las posiciones borradas.
+
+\subsection{Campos y registros con longitud variable}
+La informacion en una archivo siempre es homogenea. Esto es, todos los elementos almacenados en el son del mismo tipo. De esta forma, cada uno de los datos es del mismo tamaño, generando lo que se denomina archivos con registros de longitud fija.\\
+Administrar archivos con registros de longitud fija tiene algunas importantes ventajas: el proceso de entrada y salida de informacion, desde y hacia los buffers, es responsabilidad del sistema operativo; los procesos de alta, baja y modificacion de datos se corresponden con todo lo visto hasta el momento.\\
+No obstante, hay determinados problemas donde no es posible, no es deseable trabajar con registros de longitud fija. \\
+Para evitar situaciones donde sobra memoria en cada elemento del archivo, es de interes contar con alguna organizacion que solo utilice el espacio necesario para almacenar la informacion. Este tipo de soluciones se representan con archivos donde los registros utilicen longitud variable. En estos casos, como el nombre lo indica, la cantidad de espacio utilizada por cada elemento del archivo no esta determinada a priori.\\
+Cada elemento del dato debe descomponerse en cada uno de sus elementos constitutivos y asi, elemento a elemento, guardarse en el archivo. En el caso de necesitar transferir un string, debe hacerse caracter a caracter; en caso de tratarse de un dato numerico, cifra a cifra.
+
+\begin{lstlisting}
+program ejemplo_4_5;
+...
+begin
+...
+while apellido<>'zzz' do
+begin
+  BlockWrite(empleados, apellido, length(apellido)+1);
+  BlockWrite(empleados, '#', 1);
+  ...
+  BlockWrite(empleados, documento, length(documento)+1);
+  BlockWrite(empleados, '@', 1);
+end;
+close(empleados);
+end.
+\end{lstlisting}
+
+La primera conclusion que se puede obtener a partir del uso de registros de longitud variable es que la utilizacion de espacio en disco es optimizada, respecto del uso, con registros de longitud fija. Sin embargo, esto conlleva un algoritmo donde el programados debe resolver en forma mucho mas minuciosa las operaciones de agregar y quitar elementos.
+
+\subsubsection{Alternativas para registros de longitud variable}
+Cuando se plantea la utilizacion de espacio con longitud variable sobre tecnicas de espacio fijo, existen algunas variantes que se pueden analizar. Estas tienen que ver ocn utilizar indicadores de longitud de campo y/o registro. De esta manera, antes de almacenar un registro, se indica su longitud; luego, los siguientes bytes corresponen a elementos de datos de dicho registro.
+
+\subsection{Elminacion con registros de longitud variable}
+El proceso de baja sobre un archivo con registros de longitud variable es, a priori, similar a lo discutido anteriormente. Un elemento puede ser eliminado de manera logica o fisica. En este ultimo caso, el modo de recuperar espacio es similar a lo planteado en el ejemplo 4.3. \\
+El prcoeso de baja logico no tiene diferencias sustanciales con respecto a lo discutido anteriormente. Sin embargo, cuando se desea recuperar el espacio borrado logicamente con nuevos elementos, deben tenerse en cuenta nuevas consideraciones. Estas tienen que ver con el espacio disponible. Mientras que con registros de longitud fija los elementos a eliminar e insertar son del mismo tamaño, utilizando registros de longitud variable esta precondicion no esta presente.\\
+El proceso de insercion debe localizar el lugar dentro del archivo mas adecuado al nuevo elemento. Existen tres formas genericas para la seleccion de este espacio:
+\begin{itemize}
+  \item \textbf{Primer ajuste: }consiste en seleccionar el primer espacio disponible donde quepa el registro a insertar.
+  \item \textbf{Mejor ajuste: }consiste en seleccionar el espacio mas adecuado para el registro. Se considera el espacio mas adecuado como aquel de menor tamaño donde quepa el registro.
+  \item \textbf{Peor ajuste: }consiste en seleccionar el espacio de mayor tamaño, asignando para el registro solo los bytes necesarios.
+\end{itemize}
+
+\subsection{Fragmentacion}
+\begin{itemize}
+  \item Se denomina \textbf{fragmentacion interna} a aquella que se produce cuando a un elemento de dato se le asigna mayor espacio del necesario.
+  \item Se denomina \textbf{fragmentacion externa} al espacio disponible entre dos registros, pero que es demasiado pequeño para poder ser reutilizado.
+\end{itemize}
+
+\subsubsection{Fragmentacion y recuperacion de espacio}
+Como se menciono anteriormente, el procedimiento de recuperacion de espacio generado por bajas, utilizando registro de longitud variable, presenta tres alternativas.\\
+Cada una de estas alternativas selecciona el espacio considerado mas conveniente. Las tecnicas de primer y mejor ajuste suelen implementar una variante que genera fragmentacion interna. Asi, una vez seleccionado el lugar libre, el espacio asignado corresponde a la totalidad de lo disponible. \\
+Por el contrario, la tecnica de peor ajuste solo asigna el espacio necesario. De esta forma, es posible que genere fragmentacion externa dentro del archivo. Es deseable, en esos casos, dispone de un algoritmo que se ejecute periodicamente para la recuperacion de estos espacios no asignados \textit{(garbage collector)}.
+
+\subsection{Modificacion de datos con registro de longitud variable}
+Modificar un registro existente puede significar que el nuevo regstro requiero el mismo espacio en disco, que ocuper menos espacio o que requiera uno de mayor tamaño. como es natural, el problema no se genera cuando ambos registros requieren el mismo espacio. Se puede suponer que si el nuevo elemento ocupa menos espacio que el anterior, no se genera una situacion problematica dado que el espacio disponible es suficiente, aunque en ese caso se generaria fragmentacion interna. \\
+El probema surge cuando el nuevo registro ocupa mayor espaico que el anterior. En este caso, no es posible utilizar el mismo espacio fisico y el registro necesita ser reubicado. \\
+En general, para evitar todo este analisis y para facilitar el algoritmo de modificacion sobre archivos con registros de longitud varibale, se estila dividir el proceso de modificacion en dos etapas: en la primera se de da baja al elemento de dato viejo, mientras que en la segunda etapa el nuevo registro es insertado de acuerdo con la politica de recuperacion de espacio determinada.
+
